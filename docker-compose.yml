@@ -1,9 +1,10 @@
 version: '3.5'
 services:
    payara:
-      container_name: featherkraken-payara
+      container_name: fk-payara
       build:
          context: .
          dockerfile: Dockerfile
       ports:
       - 8080:8080
+      - 4848:4848
