@@ -21,6 +21,7 @@ jobs:
       - checkout
       -  run: docker-compose up --build -d
       -  run: mvn --batch-mode --update-snapshots clean package -DskipTests
+      -  run: ls -la
       -  run: docker-compose up --build -d
       -  run: sleep 60
       -  run: mvn --batch-mode --update-snapshots verify -DskipUTs
@@ -32,9 +33,3 @@ workflows:
       -  java-unit-tests:
             requires:
             - java-build
-      -  run-integration-tests:
-            type: approval
-      -  java-integration-tests:
-            requires:
-            - java-build
-            - run-integration-tests
