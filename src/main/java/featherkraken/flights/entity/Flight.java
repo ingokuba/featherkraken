@@ -1,5 +1,6 @@
 package featherkraken.flights.entity;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -13,21 +14,15 @@ import lombok.experimental.Accessors;
 public class Flight
 {
 
-    private Integer      price;
-
-    private List<String> airlines;
-
-    private String       duration;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private Date        departure;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Date         departure;
+    private Date        arrival;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Date         arrival;
+    private String      duration;
 
-    private Integer      stops;
+    private Integer     stops;
 
-    private String       link;
-
-    private List<Route>  route;
+    private List<Route> route = new ArrayList<>();
 }

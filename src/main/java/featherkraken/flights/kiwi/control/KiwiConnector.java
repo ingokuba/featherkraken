@@ -1,9 +1,12 @@
 package featherkraken.flights.kiwi.control;
 
 import static featherkraken.flights.control.JsonUtil.toStringList;
+import static featherkraken.flights.entity.SearchRequest.TripType.ONE_WAY;
+import static featherkraken.flights.entity.SearchRequest.TripType.ROUND_TRIP;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +24,7 @@ import featherkraken.flights.entity.Route;
 import featherkraken.flights.entity.SearchRequest;
 import featherkraken.flights.entity.SearchRequest.ClassType;
 import featherkraken.flights.entity.SearchRequest.TripType;
+import featherkraken.flights.entity.Trip;
 
 public class KiwiConnector
     implements APIConnector
@@ -29,12 +33,13 @@ public class KiwiConnector
     private static final String ENDPOINT = "https://api.skypicker.com/flights";
 
     @Override
-    public List<Flight> search(SearchRequest request)
+    public List<Trip> search(SearchRequest request)
     {
         Response response = ClientBuilder.newClient().target(ENDPOINT)
             .queryParam("partner", "picky")
             .queryParam("v", 3)
             .queryParam("curr", "EUR")
+            .queryParam("limit", request.getLimit())
             .queryParam("fly_from", request.getSource())
             .queryParam("fly_to", request.getTarget())
             .queryParam("date_from", dateFormat(request.getDeparture()))
@@ -42,17 +47,17 @@ public class KiwiConnector
             .queryParam("return_from", dateFormat(request.getReturn()))
             .queryParam("return_to", dateFormat(request.getReturn()))
             .queryParam("selected_cabins", parseClass(request.getClassType()))
-            .queryParam("flight_type", request.getTripType() == TripType.ONE_WAY ? "oneway" : "round")
+            .queryParam("flight_type", request.getTripType() == ONE_WAY ? "oneway" : "round")
             .request(APPLICATION_JSON_TYPE).get();
-        List<Flight> flights = new ArrayList<>();
+        List<Trip> trips = new ArrayList<>();
         JsonObject json = response.readEntity(JsonObject.class);
         JsonValue data = json.get("data");
         if (data == null) {
-            return flights;
+            return trips;
         }
         JsonArray jsonFlights = (JsonArray)data;
-        jsonFlights.forEach(flight -> flights.add(parseFlight((JsonObject)flight)));
-        return flights;
+        jsonFlights.forEach(flight -> trips.add(parseTrip((JsonObject)flight, request.getTripType())));
+        return trips;
     }
 
     /**
@@ -69,27 +74,18 @@ public class KiwiConnector
     /**
      * Parse json response object to {@link Flight} object.
      */
-    private Flight parseFlight(JsonObject flight)
+    private Trip parseTrip(JsonObject object, TripType tripType)
     {
-        JsonArray route = flight.getJsonArray("route");
-        return new Flight().setPrice(flight.getInt("price", -1))
-            .setAirlines(toStringList(flight.getJsonArray("airlines")))
-            .setDuration(flight.getString("fly_duration"))
-            .setDeparture(new Date(flight.getInt("dTime")))
-            .setArrival(new Date(flight.getInt("aTime")))
-            .setLink(flight.getString("deep_link"))
-            .setStops(route.size() - 1)
-            .setRoute(parseRoute(route));
-    }
-
-    /**
-     * Parse route from Kiwi response to {@link Route}.
-     */
-    private List<Route> parseRoute(JsonArray array)
-    {
-        List<Route> routes = new ArrayList<>();
-        for (int i = 0; i < array.size(); i++) {
-            JsonObject kiwiRoute = array.getJsonObject(i);
+        Trip trip = new Trip().setPrice(object.getInt("price", -1))
+            .setAirlines(toStringList(object.getJsonArray("airlines")))
+            .setLink(object.getString("deep_link"));
+        JsonArray kiwiRoutes = object.getJsonArray("route");
+        Flight outwardFlight = new Flight().setDuration(object.getString("fly_duration"))
+            .setDeparture(getDate(object.getInt("dTime")))
+            .setArrival(getDate(object.getInt("aTime")));
+        Flight returnFlight = ROUND_TRIP.equals(tripType) ? new Flight().setDuration(object.getString("return_duration")) : null;
+        for (int i = 0; i < kiwiRoutes.size(); i++) {
+            JsonObject kiwiRoute = kiwiRoutes.getJsonObject(i);
             Route route = new Route()
                 .setSource(new Airport()
                     .setName(kiwiRoute.getString("cityCodeFrom"))
@@ -98,11 +94,32 @@ public class KiwiConnector
                     .setName(kiwiRoute.getString("cityCodeTo"))
                     .setDisplayName(kiwiRoute.getString("cityTo")))
                 .setAirline(kiwiRoute.getString("airline"))
-                .setDeparture(new Date(kiwiRoute.getInt("dTime")))
-                .setArrival(new Date(kiwiRoute.getInt("aTime")));
-            routes.add(route);
+                .setDeparture(getDate(kiwiRoute.getInt("dTime")))
+                .setArrival(getDate(kiwiRoute.getInt("aTime")));
+            if (kiwiRoute.getInt("return") == 0) {
+                outwardFlight.getRoute().add(route);
+            }
+            else if (returnFlight != null) {
+                returnFlight.getRoute().add(route);
+            }
         }
-        return routes;
+        outwardFlight.setStops(outwardFlight.getRoute().size() - 1);
+        if (returnFlight != null) {
+            List<Route> returnRoute = returnFlight.getRoute();
+            returnFlight.setDeparture(returnRoute.get(0).getDeparture())
+                .setArrival(returnRoute.get(returnRoute.size() - 1).getArrival())
+                .setStops(returnFlight.getRoute().size() - 1);
+            trip.setReturnFlight(returnFlight);
+        }
+        return trip.setOutwardFlight(outwardFlight);
+    }
+
+    /**
+     * Parse date from epoch seconds.
+     */
+    private Date getDate(int seconds)
+    {
+        return Date.from(Instant.ofEpochSecond(seconds));
     }
 
     /**

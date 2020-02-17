@@ -40,6 +40,8 @@ public class SearchRequest
     @JsonFormat(pattern = "dd.MM.yyyy")
     private Date      returnDate;
 
+    private Integer   limit;
+
     public Date getReturn()
     {
         return returnDate;
