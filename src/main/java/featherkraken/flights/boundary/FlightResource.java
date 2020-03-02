@@ -15,8 +15,8 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.Response;
 
 import featherkraken.flights.control.FlightSearcher;
-import featherkraken.flights.entity.Flight;
 import featherkraken.flights.entity.SearchRequest;
+import featherkraken.flights.entity.Trip;
 
 @Path(FlightResource.PATH)
 @RequestScoped
@@ -32,6 +32,6 @@ public class FlightResource
         if (request == null) {
             throw new BadRequestException(NO_ENTITY);
         }
-        return Response.status(OK).entity(new GenericEntity<List<Flight>>(FlightSearcher.search(request)) {}).build();
+        return Response.status(OK).entity(new GenericEntity<List<Trip>>(FlightSearcher.search(request)) {}).build();
     }
 }
