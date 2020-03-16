@@ -4,10 +4,13 @@ import static featherkraken.airports.boundary.AirportResource.PATH;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 
@@ -44,6 +47,8 @@ public class AirportResourceIT
         Airport airport = airports[0];
         assertThat(airport.getName(), not(emptyOrNullString()));
         assertThat(airport.getDisplayName(), not(emptyOrNullString()));
+        assertThat(airport.getLatitude(), anyOf(lessThan(0.0), greaterThan(0.0)));
+        assertThat(airport.getLongitude(), anyOf(lessThan(0.0), greaterThan(0.0)));
     }
 
     @Test

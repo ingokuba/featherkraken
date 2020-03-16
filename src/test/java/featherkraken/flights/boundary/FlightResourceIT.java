@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import featherkraken.flights.entity.Airport;
 import featherkraken.flights.entity.SearchRequest;
 import featherkraken.flights.entity.SearchRequest.ClassType;
 import featherkraken.flights.entity.SearchRequest.TripType;
@@ -41,8 +42,8 @@ public class FlightResourceIT
             .setTripType(TripType.ONE_WAY)
             .setClassType(ClassType.ECONOMY)
             .setPassengers(1)
-            .setSource("FRA")
-            .setTarget("LAX")
+            .setSource(airport("FRA"))
+            .setTarget(airport("LAX"))
             .setDeparture(fromToday(1, Calendar.MONTH));
 
         Response response = featherkraken.doPost(PATH, request);
@@ -62,8 +63,9 @@ public class FlightResourceIT
             .setTripType(TripType.ROUND_TRIP)
             .setClassType(ClassType.ECONOMY)
             .setPassengers(1)
-            .setSource("FRA")
-            .setTarget("LAX")
+            .setRadius(0)
+            .setSource(airport("FRA"))
+            .setTarget(airport("LAX"))
             .setDeparture(fromToday(1, Calendar.MONTH))
             .setReturn(fromToday(2, Calendar.MONTH));
 
@@ -84,6 +86,34 @@ public class FlightResourceIT
         Response response = featherkraken.doPost(PATH, request);
 
         assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
+    }
+
+    @Test
+    public void should_return_valid_flights_with_radius_filter()
+    {
+        SearchRequest request = new SearchRequest()
+            .setLimit(1)
+            .setTripType(TripType.ROUND_TRIP)
+            .setClassType(ClassType.ECONOMY)
+            .setPassengers(1)
+            .setRadius(500)
+            .setSource(airport("FRA").setLatitude(50.033056).setLongitude(8.570556))
+            .setTarget(airport("LAX"))
+            .setDeparture(fromToday(1, Calendar.MONTH))
+            .setReturn(fromToday(2, Calendar.MONTH));
+
+        Response response = featherkraken.doPost(PATH, request);
+
+        assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
+        Trip[] trips = response.readEntity(Trip[].class);
+        assertThat(trips.length, equalTo(1));
+        FlightChecker.check(trips[0].getOutwardFlight());
+        FlightChecker.check(trips[0].getReturnFlight());
+    }
+
+    private static Airport airport(String name)
+    {
+        return new Airport().setName(name);
     }
 
     private static Date fromToday(int amount, int field)

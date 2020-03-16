@@ -25,11 +25,11 @@ public class SearchRequest
 
     private Integer   passengers;
 
-    private String    source;
+    private Airport   source;
 
     private Integer   radius;
 
-    private String    target;
+    private Airport   target;
 
     @JsonFormat(pattern = "dd.MM.yyyy")
     private Date      departure;
