@@ -58,8 +58,11 @@ public class AirportResource
 
     private Airport parseAirport(JsonObject location)
     {
+        JsonObject latLon = location.getJsonObject("location");
         return new Airport()
             .setName(location.getString("code"))
-            .setDisplayName(location.getString("name"));
+            .setDisplayName(location.getString("name"))
+            .setLatitude(latLon.getJsonNumber("lat").doubleValue())
+            .setLongitude(latLon.getJsonNumber("lon").doubleValue());
     }
 }

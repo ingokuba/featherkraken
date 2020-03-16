@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.json.JsonArray;
+import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.ws.rs.client.ClientBuilder;
@@ -35,13 +36,14 @@ public class KiwiConnector
     @Override
     public List<Trip> search(SearchRequest request)
     {
+        String source = parseLocation(request.getSource(), request.getRadius());
         Response response = ClientBuilder.newClient().target(ENDPOINT)
             .queryParam("partner", "picky")
             .queryParam("v", 3)
             .queryParam("curr", "EUR")
             .queryParam("limit", request.getLimit())
-            .queryParam("fly_from", request.getSource())
-            .queryParam("fly_to", request.getTarget())
+            .queryParam("fly_from", source)
+            .queryParam("fly_to", request.getTarget().getName())
             .queryParam("date_from", dateFormat(request.getDeparture()))
             .queryParam("date_to", dateFormat(request.getDeparture()))
             .queryParam("return_from", dateFormat(request.getReturn()))
@@ -58,6 +60,19 @@ public class KiwiConnector
         JsonArray jsonFlights = (JsonArray)data;
         jsonFlights.forEach(flight -> trips.add(parseTrip((JsonObject)flight, request.getTripType())));
         return trips;
+    }
+
+    /**
+     * Parse airport to "lat-lon-xkm" if radius is set.
+     * 
+     * @return airport in "lat-lon-xkm" format or airport.name if radius is not set.
+     */
+    private String parseLocation(Airport airport, Integer radius)
+    {
+        if (radius == null || radius <= 0) {
+            return airport.getName();
+        }
+        return String.format("%1$.6f-%2$.6f-%3$dkm", airport.getLatitude(), airport.getLongitude(), radius);
     }
 
     /**
@@ -87,12 +102,8 @@ public class KiwiConnector
         for (int i = 0; i < kiwiRoutes.size(); i++) {
             JsonObject kiwiRoute = kiwiRoutes.getJsonObject(i);
             Route route = new Route()
-                .setSource(new Airport()
-                    .setName(kiwiRoute.getString("cityCodeFrom"))
-                    .setDisplayName(kiwiRoute.getString("cityFrom")))
-                .setTarget(new Airport()
-                    .setName(kiwiRoute.getString("cityCodeTo"))
-                    .setDisplayName(kiwiRoute.getString("cityTo")))
+                .setSource(parseAirport(kiwiRoute, "From"))
+                .setTarget(parseAirport(kiwiRoute, "To"))
                 .setAirline(kiwiRoute.getString("airline"))
                 .setDeparture(getDate(kiwiRoute.getInt("dTime")))
                 .setArrival(getDate(kiwiRoute.getInt("aTime")));
@@ -112,6 +123,27 @@ public class KiwiConnector
             trip.setReturnFlight(returnFlight);
         }
         return trip.setOutwardFlight(outwardFlight);
+    }
+
+    /**
+     * Parse Kiwi json route to {@link Airport} object.
+     * 
+     * @param direction either "From" or "To".
+     */
+    private Airport parseAirport(JsonObject route, String direction)
+    {
+        Airport airport = new Airport()
+            .setName(route.getString("cityCode" + direction))
+            .setDisplayName(route.getString("city" + direction));
+        JsonNumber latitude = route.getJsonNumber("lat" + direction);
+        if (latitude != null) {
+            airport.setLatitude(latitude.doubleValue());
+        }
+        JsonNumber longitude = route.getJsonNumber("lng" + direction);
+        if (longitude != null) {
+            airport.setLongitude(longitude.doubleValue());
+        }
+        return airport;
     }
 
     /**

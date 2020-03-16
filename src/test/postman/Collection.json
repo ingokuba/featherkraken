@@ -13,13 +13,13 @@
 					{
 						"key": "Content-Type",
 						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
+						"type": "text",
+						"value": "application/json"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"source\": \"FRA\",\n    \"target\": \"LAX\",\n    \"radius\": 0,\n    \"limit\": 25,\n    \"passengers\": 1,\n    \"departure\": \"11.11.2020\",\n    \"return\": \"22.11.2020\",\n    \"classType\": \"Economy\",\n    \"tripType\": \"Round trip\"\n}",
+					"raw": "{\n   \"source\": {\n        \"name\": \"FRA\",\n        \"displayName\": \"Frankfurt International Airport\"\n    },\n    \"target\": {\n        \"name\": \"LAX\",\n        \"displayName\": \"Los Angeles International\"\n    },\n    \"radius\": 0,\n    \"limit\": 25,\n    \"passengers\": 1,\n    \"departure\": \"11.11.2020\",\n    \"return\": \"22.11.2020\",\n    \"classType\": \"Economy\",\n    \"tripType\": \"Round trip\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -34,7 +34,42 @@
 					"path": [
 						"flights"
 					]
-				}
+				},
+				"description": "Search flights without radius filter."
+			},
+			"response": []
+		},
+		{
+			"name": "Search flights with radius",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"source\": {\n        \"name\": \"FRA\",\n        \"displayName\": \"Frankfurt International Airport\",\n        \"latitude\": 50.033056,\n        \"longitude\": 8.570556\n    },\n    \"target\": {\n        \"name\": \"LAX\",\n        \"displayName\": \"Los Angeles International\",\n        \"latitude\": 33.9425,\n        \"longitude\": -118.40806\n    },\n    \"radius\": 500,\n    \"limit\": 25,\n    \"passengers\": 1,\n    \"departure\": \"11.11.2020\",\n    \"return\": \"22.11.2020\",\n    \"classType\": \"Economy\",\n    \"tripType\": \"Round trip\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{apiUrl}}/flights",
+					"host": [
+						"{{apiUrl}}"
+					],
+					"path": [
+						"flights"
+					]
+				},
+				"description": "Search flights with radius filter."
 			},
 			"response": []
 		}
@@ -63,7 +98,7 @@
 	],
 	"variable": [
 		{
-			"id": "2e653a22-3f64-4979-8c08-1cf4661f7d4d",
+			"id": "6009cd0d-0210-4ee2-beca-e68d30cef767",
 			"key": "apiUrl",
 			"value": "",
 			"type": "string"

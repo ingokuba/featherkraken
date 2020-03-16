@@ -11,4 +11,8 @@ public class Airport
     private String name;
 
     private String displayName;
+
+    private Double latitude;
+
+    private Double longitude;
 }
