@@ -1,9 +1,12 @@
 package featherkraken.flights.test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -83,5 +86,25 @@ public class JerseyResourceProvider
     public Response doPost(String path, Object object)
     {
         return resources.target(path).request().post(object == null ? null : Entity.entity(object, MediaType.APPLICATION_JSON));
+    }
+
+    /**
+     * Get without query parameters.
+     */
+    public Response doGet(String path)
+    {
+        return doGet(path, new HashMap<>());
+    }
+
+    /**
+     * Get with query parameters.
+     */
+    public Response doGet(String path, Map<String, Object> queryParams)
+    {
+        WebTarget target = resources.target(path);
+        for (String key : queryParams.keySet()) {
+            target = target.queryParam(key, queryParams.get(key));
+        }
+        return target.request().get();
     }
 }
