@@ -4,6 +4,7 @@ import static featherkraken.flights.boundary.FlightResource.PATH;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Calendar;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import featherkraken.flights.entity.Airport;
+import featherkraken.flights.entity.Flight;
 import featherkraken.flights.entity.SearchRequest;
 import featherkraken.flights.entity.SearchRequest.ClassType;
 import featherkraken.flights.entity.SearchRequest.TripType;
@@ -109,6 +111,29 @@ public class FlightResourceIT
         assertThat(trips.length, equalTo(1));
         FlightChecker.check(trips[0].getOutwardFlight());
         FlightChecker.check(trips[0].getReturnFlight());
+    }
+
+    @Test
+    public void should_return_valid_flights_with_stops()
+    {
+        SearchRequest request = new SearchRequest()
+            .setLimit(1)
+            .setTripType(TripType.ONE_WAY)
+            .setClassType(ClassType.ECONOMY)
+            .setPassengers(1)
+            .setStops(1)
+            .setSource(airport("FRA"))
+            .setTarget(airport("LAX"))
+            .setDeparture(fromToday(1, Calendar.MONTH));
+
+        Response response = featherkraken.doPost(PATH, request);
+
+        assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
+        Trip[] trips = response.readEntity(Trip[].class);
+        assertThat(trips.length, equalTo(1));
+        Flight outwardFlight = trips[0].getOutwardFlight();
+        FlightChecker.check(outwardFlight);
+        assertThat(outwardFlight.getRoute(), hasSize(2));
     }
 
     private static Airport airport(String name)

@@ -16,6 +16,7 @@ import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
 import featherkraken.flights.control.APIConnector;
@@ -37,7 +38,7 @@ public class KiwiConnector
     public List<Trip> search(SearchRequest request)
     {
         String source = parseLocation(request.getSource(), request.getRadius());
-        Response response = ClientBuilder.newClient().target(ENDPOINT)
+        WebTarget webTarget = ClientBuilder.newClient().target(ENDPOINT)
             .queryParam("partner", "picky")
             .queryParam("v", 3)
             .queryParam("curr", "EUR")
@@ -49,8 +50,11 @@ public class KiwiConnector
             .queryParam("return_from", dateFormat(request.getReturn()))
             .queryParam("return_to", dateFormat(request.getReturn()))
             .queryParam("selected_cabins", parseClass(request.getClassType()))
-            .queryParam("flight_type", request.getTripType() == ONE_WAY ? "oneway" : "round")
-            .request(APPLICATION_JSON_TYPE).get();
+            .queryParam("flight_type", request.getTripType() == ONE_WAY ? "oneway" : "round");
+        if (request.getStops() != null) {
+            webTarget = webTarget.queryParam("max_stopovers", request.getStops());
+        }
+        Response response = webTarget.request(APPLICATION_JSON_TYPE).get();
         List<Trip> trips = new ArrayList<>();
         JsonObject json = response.readEntity(JsonObject.class);
         JsonValue data = json.get("data");
