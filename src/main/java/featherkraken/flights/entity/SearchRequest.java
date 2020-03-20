@@ -42,6 +42,8 @@ public class SearchRequest
 
     private Integer   limit;
 
+    private Integer   stops;
+
     public Date getReturn()
     {
         return returnDate;
