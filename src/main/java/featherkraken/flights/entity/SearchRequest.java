@@ -1,8 +1,5 @@
 package featherkraken.flights.entity;
 
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -31,26 +28,36 @@ public class SearchRequest
 
     private Airport   target;
 
-    @JsonFormat(pattern = "dd.MM.yyyy")
-    private Date      departure;
+    private Timespan  departure;
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @JsonProperty("return")
-    @JsonFormat(pattern = "dd.MM.yyyy")
-    private Date      returnDate;
+    private Timespan  returnDate;
 
     private Integer   limit;
 
     private Integer   stops;
 
-    public Date getReturn()
+    public SearchRequest setDeparture(Timespan departure)
+    {
+        if (departure.getTo() == null) {
+            departure.setTo(departure.getFrom());
+        }
+        this.departure = departure;
+        return this;
+    }
+
+    public Timespan getReturn()
     {
         return returnDate;
     }
 
-    public SearchRequest setReturn(Date returnDate)
+    public SearchRequest setReturn(Timespan returnDate)
     {
+        if (returnDate.getTo() == null) {
+            returnDate.setTo(returnDate.getFrom());
+        }
         this.returnDate = returnDate;
         return this;
     }
