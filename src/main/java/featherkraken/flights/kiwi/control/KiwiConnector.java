@@ -26,6 +26,7 @@ import featherkraken.flights.entity.Route;
 import featherkraken.flights.entity.SearchRequest;
 import featherkraken.flights.entity.SearchRequest.ClassType;
 import featherkraken.flights.entity.SearchRequest.TripType;
+import featherkraken.flights.entity.Timespan;
 import featherkraken.flights.entity.Trip;
 
 public class KiwiConnector
@@ -45,14 +46,22 @@ public class KiwiConnector
             .queryParam("limit", request.getLimit())
             .queryParam("fly_from", source)
             .queryParam("fly_to", request.getTarget().getName())
-            .queryParam("date_from", dateFormat(request.getDeparture()))
-            .queryParam("date_to", dateFormat(request.getDeparture()))
-            .queryParam("return_from", dateFormat(request.getReturn()))
-            .queryParam("return_to", dateFormat(request.getReturn()))
             .queryParam("selected_cabins", parseClass(request.getClassType()))
             .queryParam("flight_type", request.getTripType() == ONE_WAY ? "oneway" : "round");
         if (request.getStops() != null) {
             webTarget = webTarget.queryParam("max_stopovers", request.getStops());
+        }
+        Timespan departure = request.getDeparture();
+        if (departure != null) {
+            webTarget = webTarget
+                .queryParam("date_from", dateFormat(departure.getFrom()))
+                .queryParam("date_to", dateFormat(departure.getTo()));
+        }
+        Timespan returnDate = request.getReturn();
+        if (returnDate != null) {
+            webTarget = webTarget
+                .queryParam("return_from", dateFormat(returnDate.getFrom()))
+                .queryParam("return_to", dateFormat(returnDate.getTo()));
         }
         Response response = webTarget.request(APPLICATION_JSON_TYPE).get();
         List<Trip> trips = new ArrayList<>();

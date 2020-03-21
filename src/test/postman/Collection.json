@@ -19,7 +19,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n   \"source\": {\n        \"name\": \"FRA\",\n        \"displayName\": \"Frankfurt International Airport\"\n    },\n    \"target\": {\n        \"name\": \"LAX\",\n        \"displayName\": \"Los Angeles International\"\n    },\n    \"radius\": 0,\n    \"limit\": 25,\n    \"passengers\": 1,\n    \"departure\": \"11.11.2020\",\n    \"return\": \"22.11.2020\",\n    \"classType\": \"Economy\",\n    \"tripType\": \"Round trip\"\n}",
+					"raw": "{\n    \"source\": {\n        \"name\": \"FRA\",\n        \"displayName\": \"Frankfurt International Airport\"\n    },\n    \"target\": {\n        \"name\": \"LAX\",\n        \"displayName\": \"Los Angeles International\"\n    },\n    \"radius\": 0,\n    \"limit\": 25,\n    \"passengers\": 1,\n    \"departure\": {\n        \"from\": \"11.11.2020\"\n    },\n    \"return\": {\n        \"from\": \"22.11.2020\"\n    },\n    \"classType\": \"Economy\",\n    \"tripType\": \"Round trip\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -53,7 +53,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"source\": {\n        \"name\": \"FRA\",\n        \"displayName\": \"Frankfurt International Airport\",\n        \"latitude\": 50.033056,\n        \"longitude\": 8.570556\n    },\n    \"target\": {\n        \"name\": \"LAX\",\n        \"displayName\": \"Los Angeles International\",\n        \"latitude\": 33.9425,\n        \"longitude\": -118.40806\n    },\n    \"radius\": 500,\n    \"limit\": 25,\n    \"passengers\": 1,\n    \"departure\": \"11.11.2020\",\n    \"return\": \"22.11.2020\",\n    \"classType\": \"Economy\",\n    \"tripType\": \"Round trip\"\n}",
+					"raw": "{\n    \"source\": {\n        \"name\": \"FRA\",\n        \"displayName\": \"Frankfurt International Airport\",\n        \"latitude\": 50.033056,\n        \"longitude\": 8.570556\n    },\n    \"target\": {\n        \"name\": \"LAX\",\n        \"displayName\": \"Los Angeles International\",\n        \"latitude\": 33.9425,\n        \"longitude\": -118.40806\n    },\n    \"radius\": 500,\n    \"limit\": 25,\n    \"passengers\": 1,\n    \"departure\": {\n        \"from\": \"11.11.2020\"\n    },\n    \"return\": {\n        \"from\": \"22.11.2020\"\n    },\n    \"classType\": \"Economy\",\n    \"tripType\": \"Round trip\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -70,6 +70,56 @@
 					]
 				},
 				"description": "Search flights with radius filter."
+			},
+			"response": []
+		},
+		{
+			"name": "Search flights with timespan",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"source\": {\n        \"name\": \"FRA\",\n        \"displayName\": \"Frankfurt International Airport\"\n    },\n    \"target\": {\n        \"name\": \"LAX\",\n        \"displayName\": \"Los Angeles International\"\n    },\n    \"radius\": 0,\n    \"limit\": 25,\n    \"passengers\": 1,\n    \"departure\": {\n        \"from\": \"11.11.2020\",\n        \"to\": \"13.11.2020\"\n    },\n    \"return\": {\n        \"from\": \"22.11.2020\",\n        \"to\": \"24.11.2020\"\n    },\n    \"classType\": \"Economy\",\n    \"tripType\": \"Round trip\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{apiUrl}}/flights",
+					"host": [
+						"{{apiUrl}}"
+					],
+					"path": [
+						"flights"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get airports",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{apiUrl}}/airports?query=Fra",
+					"host": [
+						"{{apiUrl}}"
+					],
+					"path": [
+						"airports"
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "Fra"
+						}
+					]
+				},
+				"description": "Get airports by name."
 			},
 			"response": []
 		}
@@ -98,7 +148,7 @@
 	],
 	"variable": [
 		{
-			"id": "6009cd0d-0210-4ee2-beca-e68d30cef767",
+			"id": "6945b1dc-3897-4b5b-b290-f5606d76f342",
 			"key": "apiUrl",
 			"value": "",
 			"type": "string"
