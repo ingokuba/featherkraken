@@ -99,7 +99,7 @@ public class FlightResourceIT
     public void should_return_valid_flights_with_radius_filter()
     {
         SearchRequest request = new SearchRequest()
-            .setLimit(1)
+            .setLimit(100)
             .setTripType(TripType.ROUND_TRIP)
             .setClassType(ClassType.ECONOMY)
             .setPassengers(1)
@@ -115,7 +115,6 @@ public class FlightResourceIT
         SearchResult result = response.readEntity(SearchResult.class);
         assertThat(result.getSourceAirports().size(), greaterThan(1));
         List<Trip> trips = result.getTrips();
-        assertThat(trips, hasSize(1));
         FlightChecker.check(trips.get(0).getOutwardFlight());
         FlightChecker.check(trips.get(0).getReturnFlight());
     }
