@@ -31,7 +31,7 @@ jobs:
       -  image: circleci/openjdk:11-jdk
       steps:
       - checkout
-      -  run: mvn org.owasp:dependency-check-maven:5.2.4:check -DfailBuildOnAnyVulnerability=true
+      -  run: mvn org.owasp:dependency-check-maven:5.2.4:check -DfailBuildOnAnyVulnerability=true -DsuppressionFiles=suppression.xml
 workflows:
    version: 2
    maven_build:
