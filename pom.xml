@@ -4,7 +4,7 @@
 
   <groupId>featherkraken</groupId>
   <artifactId>featherkraken-backend</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
 
   <packaging>war</packaging>
 

@@ -4,11 +4,13 @@ import static featherkraken.flights.boundary.FlightResource.PATH;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 
@@ -20,6 +22,7 @@ import featherkraken.flights.entity.Flight;
 import featherkraken.flights.entity.SearchRequest;
 import featherkraken.flights.entity.SearchRequest.ClassType;
 import featherkraken.flights.entity.SearchRequest.TripType;
+import featherkraken.flights.entity.SearchResult;
 import featherkraken.flights.entity.Timespan;
 import featherkraken.flights.entity.Trip;
 import featherkraken.flights.test.FlightChecker;
@@ -51,10 +54,11 @@ public class FlightResourceIT
         Response response = featherkraken.doPost(PATH, request);
 
         assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
-        Trip[] trips = response.readEntity(Trip[].class);
-        assertThat(trips.length, equalTo(1));
-        FlightChecker.check(trips[0].getOutwardFlight());
-        assertThat(trips[0].getReturnFlight(), nullValue());
+        SearchResult result = response.readEntity(SearchResult.class);
+        List<Trip> trips = result.getTrips();
+        assertThat(trips, hasSize(1));
+        FlightChecker.check(trips.get(0).getOutwardFlight());
+        assertThat(trips.get(0).getReturnFlight(), nullValue());
     }
 
     @Test
@@ -74,10 +78,11 @@ public class FlightResourceIT
         Response response = featherkraken.doPost(PATH, request);
 
         assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
-        Trip[] trips = response.readEntity(Trip[].class);
-        assertThat(trips.length, equalTo(1));
-        FlightChecker.check(trips[0].getOutwardFlight());
-        FlightChecker.check(trips[0].getReturnFlight());
+        SearchResult result = response.readEntity(SearchResult.class);
+        List<Trip> trips = result.getTrips();
+        assertThat(trips, hasSize(1));
+        FlightChecker.check(trips.get(0).getOutwardFlight());
+        FlightChecker.check(trips.get(0).getReturnFlight());
     }
 
     @Test
@@ -107,10 +112,12 @@ public class FlightResourceIT
         Response response = featherkraken.doPost(PATH, request);
 
         assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
-        Trip[] trips = response.readEntity(Trip[].class);
-        assertThat(trips.length, equalTo(1));
-        FlightChecker.check(trips[0].getOutwardFlight());
-        FlightChecker.check(trips[0].getReturnFlight());
+        SearchResult result = response.readEntity(SearchResult.class);
+        assertThat(result.getSourceAirports().size(), greaterThan(1));
+        List<Trip> trips = result.getTrips();
+        assertThat(trips, hasSize(1));
+        FlightChecker.check(trips.get(0).getOutwardFlight());
+        FlightChecker.check(trips.get(0).getReturnFlight());
     }
 
     @Test
@@ -129,9 +136,10 @@ public class FlightResourceIT
         Response response = featherkraken.doPost(PATH, request);
 
         assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
-        Trip[] trips = response.readEntity(Trip[].class);
-        assertThat(trips.length, equalTo(1));
-        Flight outwardFlight = trips[0].getOutwardFlight();
+        SearchResult result = response.readEntity(SearchResult.class);
+        List<Trip> trips = result.getTrips();
+        assertThat(trips, hasSize(1));
+        Flight outwardFlight = trips.get(0).getOutwardFlight();
         FlightChecker.check(outwardFlight);
         assertThat(outwardFlight.getRoute(), hasSize(2));
     }
@@ -153,10 +161,11 @@ public class FlightResourceIT
         Response response = featherkraken.doPost(PATH, request);
 
         assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
-        Trip[] trips = response.readEntity(Trip[].class);
-        assertThat(trips.length, equalTo(1));
-        FlightChecker.check(trips[0].getOutwardFlight());
-        FlightChecker.check(trips[0].getReturnFlight());
+        SearchResult result = response.readEntity(SearchResult.class);
+        List<Trip> trips = result.getTrips();
+        assertThat(trips, hasSize(1));
+        FlightChecker.check(trips.get(0).getOutwardFlight());
+        FlightChecker.check(trips.get(0).getReturnFlight());
     }
 
     private static Airport airport(String name)
