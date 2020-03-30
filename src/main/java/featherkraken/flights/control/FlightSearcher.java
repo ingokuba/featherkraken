@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import featherkraken.airports.control.AirportFinder;
+import featherkraken.flights.entity.Airport;
 import featherkraken.flights.entity.SearchRequest;
 import featherkraken.flights.entity.Trip;
 import featherkraken.flights.kiwi.control.KiwiConnector;
@@ -28,10 +30,11 @@ public abstract class FlightSearcher
      */
     public static List<Trip> search(SearchRequest request)
     {
+        List<Airport> sourceAirports = AirportFinder.findAirports(request.getSource(), request.getRadius());
         List<Trip> trips = new ArrayList<>();
         for (APIConnector connector : CONNECTORS) {
             try {
-                trips.addAll(connector.search(request));
+                trips.addAll(connector.search(sourceAirports, request));
             } catch (Exception e) {
                 log.log(Level.WARNING, "Error in " + connector.getClass().getSimpleName(), e);
             }

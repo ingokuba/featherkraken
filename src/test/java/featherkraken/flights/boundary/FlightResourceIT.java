@@ -22,13 +22,12 @@ import featherkraken.flights.entity.SearchRequest.ClassType;
 import featherkraken.flights.entity.SearchRequest.TripType;
 import featherkraken.flights.entity.Timespan;
 import featherkraken.flights.entity.Trip;
-import featherkraken.flights.kiwi.control.KiwiConnector;
 import featherkraken.flights.test.FlightChecker;
 import featherkraken.flights.test.JerseyResourceProvider;
 import lombok.AllArgsConstructor;
 
 /**
- * External API test for {@link KiwiConnector}.
+ * External API test for {@link FlightResource}.
  */
 @AllArgsConstructor
 @ExtendWith(JerseyResourceProvider.class)

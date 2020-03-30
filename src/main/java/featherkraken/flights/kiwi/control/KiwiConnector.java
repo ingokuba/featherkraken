@@ -3,6 +3,7 @@ package featherkraken.flights.kiwi.control;
 import static featherkraken.flights.control.JsonUtil.toStringList;
 import static featherkraken.flights.entity.SearchRequest.TripType.ONE_WAY;
 import static featherkraken.flights.entity.SearchRequest.TripType.ROUND_TRIP;
+import static java.util.stream.Collectors.joining;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.text.SimpleDateFormat;
@@ -36,9 +37,9 @@ public class KiwiConnector
     private static final String ENDPOINT = "https://api.skypicker.com/flights";
 
     @Override
-    public List<Trip> search(SearchRequest request)
+    public List<Trip> search(List<Airport> sourceAirports, SearchRequest request)
     {
-        String source = parseLocation(request.getSource(), request.getRadius());
+        String source = sourceAirports.stream().map(Airport::getName).collect(joining(","));
         WebTarget webTarget = ClientBuilder.newClient().target(ENDPOINT)
             .queryParam("partner", "picky")
             .queryParam("v", 3)
@@ -73,19 +74,6 @@ public class KiwiConnector
         JsonArray jsonFlights = (JsonArray)data;
         jsonFlights.forEach(flight -> trips.add(parseTrip((JsonObject)flight, request.getTripType())));
         return trips;
-    }
-
-    /**
-     * Parse airport to "lat-lon-xkm" if radius is set.
-     * 
-     * @return airport in "lat-lon-xkm" format or airport.name if radius is not set.
-     */
-    private String parseLocation(Airport airport, Integer radius)
-    {
-        if (radius == null || radius <= 0) {
-            return airport.getName();
-        }
-        return String.format("%1$.6f-%2$.6f-%3$dkm", airport.getLatitude(), airport.getLongitude(), radius);
     }
 
     /**
