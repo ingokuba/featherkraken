@@ -32,14 +32,20 @@ public abstract class FlightSearcher
     public static SearchResult search(SearchRequest request)
     {
         List<Airport> sourceAirports = AirportFinder.findAirports(request.getSource(), request.getRadius());
+        List<Airport> foundSources = new ArrayList<>();
         List<Trip> trips = new ArrayList<>();
         for (APIConnector connector : CONNECTORS) {
             try {
-                trips.addAll(connector.search(sourceAirports, request));
+                SearchResult result = connector.search(sourceAirports, request);
+                if (result == null) {
+                    continue;
+                }
+                foundSources.addAll(result.getSourceAirports());
+                trips.addAll(result.getTrips());
             } catch (Exception e) {
                 log.log(Level.WARNING, "Error in " + connector.getClass().getSimpleName(), e);
             }
         }
-        return new SearchResult().setSourceAirports(sourceAirports).setTrips(trips);
+        return new SearchResult().setSourceAirports(foundSources).setTrips(trips);
     }
 }
