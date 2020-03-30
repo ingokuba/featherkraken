@@ -27,6 +27,7 @@ import featherkraken.flights.entity.Route;
 import featherkraken.flights.entity.SearchRequest;
 import featherkraken.flights.entity.SearchRequest.ClassType;
 import featherkraken.flights.entity.SearchRequest.TripType;
+import featherkraken.flights.entity.SearchResult;
 import featherkraken.flights.entity.Timespan;
 import featherkraken.flights.entity.Trip;
 
@@ -34,10 +35,12 @@ public class KiwiConnector
     implements APIConnector
 {
 
-    private static final String ENDPOINT = "https://api.skypicker.com/flights";
+    private static final String ENDPOINT     = "https://api.skypicker.com/flights";
+
+    private List<Airport>       foundSources = new ArrayList<>();
 
     @Override
-    public List<Trip> search(List<Airport> sourceAirports, SearchRequest request)
+    public SearchResult search(List<Airport> sourceAirports, SearchRequest request)
     {
         String source = sourceAirports.stream().map(Airport::getName).collect(joining(","));
         WebTarget webTarget = ClientBuilder.newClient().target(ENDPOINT)
@@ -69,11 +72,11 @@ public class KiwiConnector
         JsonObject json = response.readEntity(JsonObject.class);
         JsonValue data = json.get("data");
         if (data == null) {
-            return trips;
+            return null;
         }
         JsonArray jsonFlights = (JsonArray)data;
         jsonFlights.forEach(flight -> trips.add(parseTrip((JsonObject)flight, request.getTripType())));
-        return trips;
+        return new SearchResult().setSourceAirports(foundSources).setTrips(trips);
     }
 
     /**
@@ -102,8 +105,12 @@ public class KiwiConnector
         Flight returnFlight = ROUND_TRIP.equals(tripType) ? new Flight().setDuration(object.getString("return_duration")) : null;
         for (int i = 0; i < kiwiRoutes.size(); i++) {
             JsonObject kiwiRoute = kiwiRoutes.getJsonObject(i);
+            Airport source = parseAirport(kiwiRoute, "From");
+            if (i == 0 && !foundSources.contains(source)) {
+                foundSources.add(source);
+            }
             Route route = new Route()
-                .setSource(parseAirport(kiwiRoute, "From"))
+                .setSource(source)
                 .setTarget(parseAirport(kiwiRoute, "To"))
                 .setAirline(kiwiRoute.getString("airline"))
                 .setDeparture(getDate(kiwiRoute.getInt("dTime")))
