@@ -31,7 +31,23 @@ jobs:
       -  image: circleci/openjdk:11-jdk
       steps:
       - checkout
-      -  run: mvn org.owasp:dependency-check-maven:5.2.4:check -DfailBuildOnAnyVulnerability=true -DsuppressionFiles=suppression.xml
+      -  run: mvn org.owasp:dependency-check-maven:5.2.4:check -DfailBuildOnAnyVulnerability=true
+   heroku:
+      executor: java-executor
+      steps:
+      - checkout
+      -  run: mvn -U clean package -DskipTests
+      -  run: mkdir heroku
+      -  run: cp heroku.yml Dockerfile heroku
+      -  run: mkdir heroku/target
+      -  run: cp target/featherkraken.war heroku/target
+      -  run: cd heroku
+      -  run: git init
+      -  run: git config --global user.email "$GH_EMAIL" > /dev/null 2>&1
+      -  run: git config --global user.name "$GH_NAME" > /dev/null 2>&1
+      -  run: git add --all
+      -  run: git commit --all -m "Heroku deployment"
+      -  run: git push --force origin master:heroku-deploy
 workflows:
    version: 2
    maven_build:
@@ -41,6 +57,9 @@ workflows:
             requires:
             - java-build
       -  sonar:
+            requires:
+            - java-build
+      -  heroku:
             requires:
             - java-build
    nightly:
