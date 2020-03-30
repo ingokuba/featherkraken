@@ -35,13 +35,14 @@ public class KiwiConnector
     implements APIConnector
 {
 
-    private static final String ENDPOINT     = "https://api.skypicker.com/flights";
+    private static final String ENDPOINT = "https://api.skypicker.com/flights";
 
-    private List<Airport>       foundSources = new ArrayList<>();
+    private List<Airport>       foundSources;
 
     @Override
     public SearchResult search(List<Airport> sourceAirports, SearchRequest request)
     {
+        foundSources = new ArrayList<>();
         String source = sourceAirports.stream().map(Airport::getName).collect(joining(","));
         WebTarget webTarget = ClientBuilder.newClient().target(ENDPOINT)
             .queryParam("partner", "picky")
