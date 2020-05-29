@@ -16,17 +16,17 @@ import featherkraken.flights.entity.Airport;
 /**
  * External API test for {@link AirportFinder}.
  */
-public class AirportFinderIT
+class AirportFinderIT
 {
 
     @BeforeEach
-    public void setApiKey()
+    void setApiKey()
     {
         System.setProperty(API_KEY, System.getenv("RAPIDAPI_KEY"));
     }
 
     @Test
-    public void should_find_airports_with_given_radius()
+    void should_find_airports_with_given_radius()
     {
         List<Airport> airports = AirportFinder.findAirports(validSource(), 500);
 
@@ -34,7 +34,7 @@ public class AirportFinderIT
     }
 
     @Test
-    public void should_return_single_airport_if_radius_is_zero()
+    void should_return_single_airport_if_radius_is_zero()
     {
         Airport source = validSource();
 
@@ -45,7 +45,7 @@ public class AirportFinderIT
     }
 
     @Test
-    public void should_return_single_airport_if_radius_is_negative()
+    void should_return_single_airport_if_radius_is_negative()
     {
         Airport source = validSource();
 
@@ -56,7 +56,7 @@ public class AirportFinderIT
     }
 
     @Test
-    public void should_return_single_airport_if_apiKey_is_invalid()
+    void should_return_single_airport_if_apiKey_is_invalid()
     {
         System.setProperty(API_KEY, "invalid");
         Airport source = validSource();
@@ -68,7 +68,7 @@ public class AirportFinderIT
     }
 
     @Test
-    public void should_return_single_airport_if_apiKey_is_missing()
+    void should_return_single_airport_if_apiKey_is_missing()
     {
         System.clearProperty(API_KEY);
         Airport source = validSource();

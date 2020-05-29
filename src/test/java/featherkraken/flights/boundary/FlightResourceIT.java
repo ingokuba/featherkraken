@@ -34,13 +34,13 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 @ExtendWith(JerseyResourceProvider.class)
-public class FlightResourceIT
+class FlightResourceIT
 {
 
     private JerseyResourceProvider featherkraken;
 
     @Test
-    public void should_return_valid_flights_for_oneway()
+    void should_return_valid_flights_for_oneway()
     {
         SearchRequest request = new SearchRequest()
             .setLimit(1)
@@ -62,7 +62,7 @@ public class FlightResourceIT
     }
 
     @Test
-    public void should_return_valid_flights_for_round_trip()
+    void should_return_valid_flights_for_round_trip()
     {
         SearchRequest request = new SearchRequest()
             .setLimit(1)
@@ -86,7 +86,7 @@ public class FlightResourceIT
     }
 
     @Test
-    public void should_be_failsafe()
+    void should_be_failsafe()
     {
         SearchRequest request = new SearchRequest();
 
@@ -96,7 +96,7 @@ public class FlightResourceIT
     }
 
     @Test
-    public void should_return_valid_flights_with_radius_filter()
+    void should_return_valid_flights_with_radius_filter()
     {
         SearchRequest request = new SearchRequest()
             .setLimit(100)
@@ -120,7 +120,7 @@ public class FlightResourceIT
     }
 
     @Test
-    public void should_return_valid_flights_with_stops()
+    void should_return_valid_flights_with_stops()
     {
         SearchRequest request = new SearchRequest()
             .setLimit(1)
@@ -144,7 +144,7 @@ public class FlightResourceIT
     }
 
     @Test
-    public void should_return_valid_flights_for_date_timespans()
+    void should_return_valid_flights_for_date_timespans()
     {
         SearchRequest request = new SearchRequest()
             .setLimit(1)

@@ -28,13 +28,13 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 @ExtendWith(JerseyResourceProvider.class)
-public class AirportResourceIT
+class AirportResourceIT
 {
 
     private JerseyResourceProvider featherkraken;
 
     @Test
-    public void should_return_valid_airports()
+    void should_return_valid_airports()
     {
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("query", "FRA");
@@ -52,7 +52,7 @@ public class AirportResourceIT
     }
 
     @Test
-    public void should_return_empty_list_for_unknown_query()
+    void should_return_empty_list_for_unknown_query()
     {
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("query", "isadjoasidjas9j");
@@ -64,7 +64,7 @@ public class AirportResourceIT
     }
 
     @Test
-    public void should_return_error_for_missing_query()
+    void should_return_error_for_missing_query()
     {
         Response response = featherkraken.doGet(PATH);
 
@@ -72,7 +72,7 @@ public class AirportResourceIT
     }
 
     @Test
-    public void should_return_error_for_short_query()
+    void should_return_error_for_short_query()
     {
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("query", "a");
