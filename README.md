@@ -17,3 +17,5 @@ GET /airports?query=Ams
 ## Flight search
 
 The core function of the application is behind the endpoint `/flights`, which translates incoming search queries into a format understandable by the external API and then returns the search result. Search parameters are not passed in the URL of the request, but instead with a POST in the request body, as this makes the search query clearer and easier to document. You can optionally specify a radius for the search, in which case flights from surrounding departure airports are searched for.
+
+To be able to find airports in a given radius, the `apiKey` system property must be set for [`AirportFinder.java`](src/main/java/featherkraken/airports/control/AirportFinder.java#L38).
