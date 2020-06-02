@@ -148,9 +148,9 @@
 	],
 	"variable": [
 		{
-			"id": "6945b1dc-3897-4b5b-b290-f5606d76f342",
+			"id": "aeb0d786-f420-421d-a72a-b38ed13b5f63",
 			"key": "apiUrl",
-			"value": "",
+			"value": "http://localhost:8080/featherkraken/rest",
 			"type": "string"
 		}
 	],
