@@ -1,5 +1,6 @@
 package featherkraken.flights.control;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -40,12 +41,18 @@ public abstract class FlightSearcher
                 if (result == null) {
                     continue;
                 }
-                foundSources.addAll(result.getSourceAirports());
-                trips.addAll(result.getTrips());
+
+                List<Airport> resultAirports = result.getSourceAirports();
+                foundSources.addAll(resultAirports);
+                List<Trip> resultTrips = result.getTrips();
+                trips.addAll(resultTrips);
+                log.info(format("%1$s: Found %2$d flights from %3$d airports.",
+                                connector.getClass().getSimpleName(), resultTrips.size(), resultAirports.size()));
             } catch (Exception e) {
                 log.log(Level.WARNING, "Error in " + connector.getClass().getSimpleName(), e);
             }
         }
+        log.info(format("Found %1$d flights from %2$d airports.", trips.size(), foundSources.size()));
         return new SearchResult().setSourceAirports(foundSources).setTrips(trips);
     }
 }

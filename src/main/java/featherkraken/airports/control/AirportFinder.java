@@ -1,5 +1,7 @@
 package featherkraken.airports.control;
 
+import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -51,6 +53,8 @@ public class AirportFinder
                 .get();
             JsonArray jsonAirports = response.readEntity(JsonArray.class);
             jsonAirports.forEach(jsonAirport -> airports.add(parseAirport((JsonObject)jsonAirport)));
+            String concatAirports = airports.stream().map(Airport::getName).collect(joining(", "));
+            log.info(format("Found %1$d possible airports: %2$s", airports.size(), concatAirports));
             return airports;
         } catch (Exception e) {
             log.log(Level.WARNING, "AirportFinder responded with error.", e);
