@@ -110,9 +110,13 @@ public class KiwiConnector
             if (i == 0 && !foundSources.contains(source)) {
                 foundSources.add(source);
             }
+            Airport target = parseAirport(kiwiRoute, "To");
+            if (ROUND_TRIP.equals(tripType) && i == kiwiRoutes.size() - 1 && !foundSources.contains(target)) {
+                foundSources.add(target);
+            }
             Route route = new Route()
                 .setSource(source)
-                .setTarget(parseAirport(kiwiRoute, "To"))
+                .setTarget(target)
                 .setAirline(kiwiRoute.getString("airline"))
                 .setDeparture(getDate(kiwiRoute.getInt("dTime")))
                 .setArrival(getDate(kiwiRoute.getInt("aTime")));
