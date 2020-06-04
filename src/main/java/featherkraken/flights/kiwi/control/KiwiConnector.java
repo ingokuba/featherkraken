@@ -111,7 +111,7 @@ public class KiwiConnector
                 foundSources.add(source);
             }
             Airport target = parseAirport(kiwiRoute, "To");
-            if (i == kiwiRoutes.size() - 1 && !foundSources.contains(target)) {
+            if (ROUND_TRIP.equals(tripType) && i == kiwiRoutes.size() - 1 && !foundSources.contains(target)) {
                 foundSources.add(target);
             }
             Route route = new Route()
