@@ -3,22 +3,26 @@ package featherkraken.flights.kiwi.control;
 import static featherkraken.flights.control.JsonUtil.toStringList;
 import static featherkraken.flights.entity.SearchRequest.TripType.ONE_WAY;
 import static featherkraken.flights.entity.SearchRequest.TripType.ROUND_TRIP;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.Response.Status.OK;
 
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.json.JsonArray;
-import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.StatusType;
 
 import featherkraken.flights.control.APIConnector;
 import featherkraken.flights.entity.Airport;
@@ -30,23 +34,33 @@ import featherkraken.flights.entity.SearchRequest.TripType;
 import featherkraken.flights.entity.SearchResult;
 import featherkraken.flights.entity.Timespan;
 import featherkraken.flights.entity.Trip;
+import lombok.extern.java.Log;
 
+@Log
 public class KiwiConnector
     implements APIConnector
 {
 
-    private static final String ENDPOINT = "https://api.skypicker.com/flights";
+    public static final String  TEQUILA_API_KEY = "tequilaApiKey";
+
+    private static final String ENDPOINT        = "https://tequila-api.kiwi.com/v2/search";
+    private static final String BOOKING_URL     = "https://www.kiwi.com/booking?token=";
+
+    private DateFormat          kiwiDateFormat  = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     private List<Airport>       foundSources;
 
     @Override
     public SearchResult search(List<Airport> sourceAirports, SearchRequest request)
     {
+        String apiKey = System.getProperty(TEQUILA_API_KEY);
+        if (apiKey == null) {
+            log.severe("Property '" + TEQUILA_API_KEY + "' has to be set for the AirportFinder.");
+            return null;
+        }
         foundSources = new ArrayList<>();
         String source = sourceAirports.stream().map(Airport::getName).collect(joining(","));
         WebTarget webTarget = ClientBuilder.newClient().target(ENDPOINT)
-            .queryParam("partner", "picky")
-            .queryParam("v", 3)
             .queryParam("curr", "EUR")
             .queryParam("limit", request.getLimit())
             .queryParam("fly_from", source)
@@ -68,7 +82,12 @@ public class KiwiConnector
                 .queryParam("return_from", dateFormat(returnDate.getFrom()))
                 .queryParam("return_to", dateFormat(returnDate.getTo()));
         }
-        Response response = webTarget.request(APPLICATION_JSON_TYPE).get();
+        Response response = webTarget.request(APPLICATION_JSON_TYPE).header("apikey", apiKey).get();
+        StatusType status = response.getStatusInfo();
+        if (!OK.equals(status.toEnum())) {
+            log.severe(format("Response code was: %1$d %2$s", status.getStatusCode(), status.getReasonPhrase()));
+            return null;
+        }
         List<Trip> trips = new ArrayList<>();
         JsonObject json = response.readEntity(JsonObject.class);
         JsonValue data = json.get("data");
@@ -98,12 +117,13 @@ public class KiwiConnector
     {
         Trip trip = new Trip().setPrice(object.getInt("price", -1))
             .setAirlines(toStringList(object.getJsonArray("airlines")))
-            .setLink(object.getString("deep_link"));
+            .setLink(BOOKING_URL + object.getString("booking_token"));
         JsonArray kiwiRoutes = object.getJsonArray("route");
-        Flight outwardFlight = new Flight().setDuration(object.getString("fly_duration"))
-            .setDeparture(getDate(object.getInt("dTime")))
-            .setArrival(getDate(object.getInt("aTime")));
-        Flight returnFlight = ROUND_TRIP.equals(tripType) ? new Flight().setDuration(object.getString("return_duration")) : null;
+        JsonObject duration = object.getJsonObject("duration");
+        Flight outwardFlight = new Flight().setDuration(toTimeString(duration.getInt("departure")))
+            .setDeparture(getDate(object.getString("local_departure")))
+            .setArrival(getDate(object.getString("local_arrival")));
+        Flight returnFlight = ROUND_TRIP.equals(tripType) ? new Flight().setDuration(toTimeString(duration.getInt("return"))) : null;
         for (int i = 0; i < kiwiRoutes.size(); i++) {
             JsonObject kiwiRoute = kiwiRoutes.getJsonObject(i);
             Airport source = parseAirport(kiwiRoute, "From");
@@ -118,8 +138,8 @@ public class KiwiConnector
                 .setSource(source)
                 .setTarget(target)
                 .setAirline(kiwiRoute.getString("airline"))
-                .setDeparture(getDate(kiwiRoute.getInt("dTime")))
-                .setArrival(getDate(kiwiRoute.getInt("aTime")));
+                .setDeparture(getDate(kiwiRoute.getString("local_departure")))
+                .setArrival(getDate(kiwiRoute.getString("local_arrival")));
             if (kiwiRoute.getInt("return") == 0) {
                 outwardFlight.getRoute().add(route);
             }
@@ -145,26 +165,45 @@ public class KiwiConnector
      */
     private Airport parseAirport(JsonObject route, String direction)
     {
-        Airport airport = new Airport()
+        return new Airport()
             .setName(route.getString("cityCode" + direction))
             .setDisplayName(route.getString("city" + direction));
-        JsonNumber latitude = route.getJsonNumber("lat" + direction);
-        if (latitude != null) {
-            airport.setLatitude(latitude.doubleValue());
-        }
-        JsonNumber longitude = route.getJsonNumber("lng" + direction);
-        if (longitude != null) {
-            airport.setLongitude(longitude.doubleValue());
-        }
-        return airport;
     }
 
     /**
-     * Parse date from epoch seconds.
+     * Parse seconds to string with hours and minutes.
+     * e.g. 69780 becomes '19h 23m'
+     * 
+     * @param duration in seconds
+     * @return String with hours and minutes
      */
-    private Date getDate(int seconds)
+    private String toTimeString(int duration)
     {
-        return Date.from(Instant.ofEpochSecond(seconds));
+        long days = TimeUnit.SECONDS.toDays(duration);
+        duration -= TimeUnit.DAYS.toSeconds(days);
+
+        long hours = TimeUnit.SECONDS.toHours(duration);
+        duration -= TimeUnit.HOURS.toSeconds(hours);
+
+        long minutes = TimeUnit.SECONDS.toMinutes(duration);
+
+        if (days > 0) {
+            return format("%1$dd %2$dh %3$dm", days, hours, minutes);
+        }
+        return hours > 0 ? format("%1$dh %2$dm", hours, minutes) : minutes + "m";
+    }
+
+    /**
+     * Parse date from kiwi date string.
+     */
+    private Date getDate(String date)
+    {
+        try {
+            return kiwiDateFormat.parse(date);
+        } catch (ParseException e) {
+            log.severe("Couldn't parse date: " + date);
+            return null;
+        }
     }
 
     /**

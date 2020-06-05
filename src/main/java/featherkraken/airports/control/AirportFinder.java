@@ -24,7 +24,7 @@ import lombok.extern.java.Log;
 public class AirportFinder
 {
 
-    public static final String  API_KEY  = "apiKey";
+    public static final String  RAPIDAPI_KEY  = "rapidapiKey";
 
     private static final String ENDPOINT = "https://cometari-airportsfinder-v1.p.rapidapi.com/api/airports/by-radius";
 
@@ -37,9 +37,9 @@ public class AirportFinder
         if (radius == null || radius <= 0) {
             return Arrays.asList(source);
         }
-        String apiKey = System.getProperty(API_KEY);
+        String apiKey = System.getProperty(RAPIDAPI_KEY);
         if (apiKey == null) {
-            log.severe("Property '" + API_KEY + "' has to be set for the AirportFinder.");
+            log.severe("Property '" + RAPIDAPI_KEY + "' has to be set for the AirportFinder.");
             return Arrays.asList(source);
         }
         try {

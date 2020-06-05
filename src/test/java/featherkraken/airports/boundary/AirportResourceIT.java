@@ -1,6 +1,7 @@
 package featherkraken.airports.boundary;
 
 import static featherkraken.airports.boundary.AirportResource.PATH;
+import static featherkraken.flights.kiwi.control.KiwiConnector.TEQUILA_API_KEY;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -19,6 +20,8 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -32,6 +35,13 @@ class AirportResourceIT
 {
 
     private JerseyResourceProvider featherkraken;
+
+    @BeforeEach
+    @AfterEach
+    void setApiKey()
+    {
+        System.setProperty(TEQUILA_API_KEY, System.getenv("TEQUILA_API_KEY"));
+    }
 
     @Test
     void should_return_valid_airports()
@@ -79,5 +89,33 @@ class AirportResourceIT
         Response response = featherkraken.doGet(PATH, queryParams);
 
         assertThat(response.getStatus(), equalTo(BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    void should_return_empty_list_if_apiKey_is_invalid()
+    {
+        System.setProperty(TEQUILA_API_KEY, "invalid");
+        Map<String, Object> queryParams = new HashMap<>();
+        queryParams.put("query", "FRA");
+
+        Response response = featherkraken.doGet(PATH, queryParams);
+
+        assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
+        Airport[] airports = response.readEntity(Airport[].class);
+        assertThat(airports, emptyArray());
+    }
+
+    @Test
+    void should_return_empty_list_if_apiKey_is_missing()
+    {
+        System.clearProperty(TEQUILA_API_KEY);
+        Map<String, Object> queryParams = new HashMap<>();
+        queryParams.put("query", "FRA");
+
+        Response response = featherkraken.doGet(PATH, queryParams);
+
+        assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
+        Airport[] airports = response.readEntity(Airport[].class);
+        assertThat(airports, emptyArray());
     }
 }
