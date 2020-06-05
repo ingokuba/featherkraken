@@ -4,8 +4,10 @@ import java.util.Objects;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 
 @Data
+@FieldNameConstants
 @Accessors(chain = true)
 public class Airport
 {

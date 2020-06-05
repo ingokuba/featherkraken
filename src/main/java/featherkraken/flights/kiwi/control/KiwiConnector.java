@@ -34,6 +34,7 @@ import featherkraken.flights.entity.SearchRequest.TripType;
 import featherkraken.flights.entity.SearchResult;
 import featherkraken.flights.entity.Timespan;
 import featherkraken.flights.entity.Trip;
+import featherkraken.kiwi.control.KiwiUtil;
 import lombok.extern.java.Log;
 
 @Log
@@ -41,21 +42,18 @@ public class KiwiConnector
     implements APIConnector
 {
 
-    public static final String  TEQUILA_API_KEY = "tequilaApiKey";
+    private static final String ENDPOINT       = "https://tequila-api.kiwi.com/v2/search";
+    private static final String BOOKING_URL    = "https://www.kiwi.com/booking?token=";
 
-    private static final String ENDPOINT        = "https://tequila-api.kiwi.com/v2/search";
-    private static final String BOOKING_URL     = "https://www.kiwi.com/booking?token=";
-
-    private DateFormat          kiwiDateFormat  = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private DateFormat          kiwiDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     private List<Airport>       foundSources;
 
     @Override
     public SearchResult search(List<Airport> sourceAirports, SearchRequest request)
     {
-        String apiKey = System.getProperty(TEQUILA_API_KEY);
+        String apiKey = KiwiUtil.getApiKey();
         if (apiKey == null) {
-            log.severe("Property '" + TEQUILA_API_KEY + "' has to be set for the AirportFinder.");
             return null;
         }
         foundSources = new ArrayList<>();

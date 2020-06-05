@@ -1,8 +1,8 @@
 package featherkraken.flights.kiwi.control;
 
-import static featherkraken.flights.kiwi.control.KiwiConnector.TEQUILA_API_KEY;
 import static featherkraken.flights.test.EntityBuilder.fullAirport;
 import static featherkraken.flights.test.EntityBuilder.fullSearchRequest;
+import static featherkraken.kiwi.control.KiwiUtil.TEQUILA_API_KEY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 

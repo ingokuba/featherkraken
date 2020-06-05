@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import featherkraken.airports.control.AirportFinder;
+import featherkraken.airports.kiwi.control.KiwiAirportFinder;
 import featherkraken.flights.entity.Airport;
 import featherkraken.flights.entity.SearchRequest;
 import featherkraken.flights.entity.SearchResult;
@@ -32,7 +32,7 @@ public abstract class FlightSearcher
      */
     public static SearchResult search(SearchRequest request)
     {
-        List<Airport> sourceAirports = AirportFinder.findAirports(request.getSource(), request.getRadius());
+        List<Airport> sourceAirports = KiwiAirportFinder.findAirports(request.getSource(), request.getRadius());
         List<Airport> foundSources = new ArrayList<>();
         List<Trip> trips = new ArrayList<>();
         for (APIConnector connector : CONNECTORS) {
