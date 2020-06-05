@@ -17,7 +17,7 @@ jobs:
       -  run: mvn --batch-mode --update-snapshots clean package -DskipTests
       -  run: docker-compose up --build -d
       #-  run: sleep 30
-      -  run: mvn --batch-mode --update-snapshots verify -DapiKey=$RAPIDAPI_KEY
+      -  run: mvn --batch-mode --update-snapshots verify -DrapidapiKey=$RAPIDAPI_KEY -DtequilaApiKey=$TEQUILA_API_KEY
       -  run: bash <(curl -s https://codecov.io/bash)
    sonar:
       docker:

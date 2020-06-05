@@ -1,6 +1,10 @@
 package featherkraken.flights.boundary;
 
 import static featherkraken.flights.boundary.FlightResource.PATH;
+import static featherkraken.flights.test.EntityBuilder.airportWithName;
+import static featherkraken.flights.test.EntityBuilder.fromToday;
+import static featherkraken.flights.test.EntityBuilder.fullAirport;
+import static featherkraken.flights.test.EntityBuilder.fullSearchRequest;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -9,7 +13,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -17,7 +20,6 @@ import javax.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import featherkraken.flights.entity.Airport;
 import featherkraken.flights.entity.Flight;
 import featherkraken.flights.entity.SearchRequest;
 import featherkraken.flights.entity.SearchRequest.ClassType;
@@ -37,6 +39,9 @@ import lombok.AllArgsConstructor;
 class FlightResourceIT
 {
 
+    private static final String    FRANKFURT   = "FRA";
+    private static final String    LOS_ANGELES = "LAX";
+
     private JerseyResourceProvider featherkraken;
 
     @Test
@@ -47,8 +52,8 @@ class FlightResourceIT
             .setTripType(TripType.ONE_WAY)
             .setClassType(ClassType.ECONOMY)
             .setPassengers(1)
-            .setSource(airport("FRA"))
-            .setTarget(airport("LAX"))
+            .setSource(airportWithName(FRANKFURT))
+            .setTarget(airportWithName(LOS_ANGELES))
             .setDeparture(new Timespan().setFrom(fromToday(1, Calendar.MONTH)));
 
         Response response = featherkraken.doPost(PATH, request);
@@ -64,16 +69,7 @@ class FlightResourceIT
     @Test
     void should_return_valid_flights_for_round_trip()
     {
-        SearchRequest request = new SearchRequest()
-            .setLimit(1)
-            .setTripType(TripType.ROUND_TRIP)
-            .setClassType(ClassType.ECONOMY)
-            .setPassengers(1)
-            .setRadius(0)
-            .setSource(airport("FRA"))
-            .setTarget(airport("LAX"))
-            .setDeparture(new Timespan().setFrom(fromToday(1, Calendar.MONTH)))
-            .setReturn(new Timespan().setFrom(fromToday(2, Calendar.MONTH)));
+        SearchRequest request = fullSearchRequest();
 
         Response response = featherkraken.doPost(PATH, request);
 
@@ -104,8 +100,8 @@ class FlightResourceIT
             .setClassType(ClassType.ECONOMY)
             .setPassengers(1)
             .setRadius(500)
-            .setSource(airport("FRA").setLatitude(50.033056).setLongitude(8.570556))
-            .setTarget(airport("LAX"))
+            .setSource(fullAirport())
+            .setTarget(airportWithName(LOS_ANGELES))
             .setDeparture(new Timespan().setFrom(fromToday(1, Calendar.MONTH)))
             .setReturn(new Timespan().setFrom(fromToday(2, Calendar.MONTH)));
 
@@ -128,8 +124,8 @@ class FlightResourceIT
             .setClassType(ClassType.ECONOMY)
             .setPassengers(1)
             .setStops(1)
-            .setSource(airport("FRA"))
-            .setTarget(airport("LAX"))
+            .setSource(airportWithName(FRANKFURT))
+            .setTarget(airportWithName(LOS_ANGELES))
             .setDeparture(new Timespan().setFrom(fromToday(1, Calendar.MONTH)));
 
         Response response = featherkraken.doPost(PATH, request);
@@ -152,8 +148,8 @@ class FlightResourceIT
             .setClassType(ClassType.ECONOMY)
             .setPassengers(1)
             .setRadius(0)
-            .setSource(airport("FRA"))
-            .setTarget(airport("LAX"))
+            .setSource(airportWithName(FRANKFURT))
+            .setTarget(airportWithName(LOS_ANGELES))
             .setDeparture(new Timespan().setFrom(fromToday(30, Calendar.DATE)).setTo(fromToday(33, Calendar.DATE)))
             .setReturn(new Timespan().setFrom(fromToday(60, Calendar.DATE)).setTo(fromToday(63, Calendar.DATE)));
 
@@ -165,17 +161,5 @@ class FlightResourceIT
         assertThat(trips, hasSize(1));
         FlightChecker.check(trips.get(0).getOutwardFlight());
         FlightChecker.check(trips.get(0).getReturnFlight());
-    }
-
-    private static Airport airport(String name)
-    {
-        return new Airport().setName(name);
-    }
-
-    private static Date fromToday(int amount, int field)
-    {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(field, amount);
-        return calendar.getTime();
     }
 }
