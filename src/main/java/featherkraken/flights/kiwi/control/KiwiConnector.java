@@ -1,9 +1,13 @@
 package featherkraken.flights.kiwi.control;
 
 import static featherkraken.flights.control.JsonUtil.toStringList;
+import static featherkraken.flights.entity.SearchRequest.ClassType.BUSINESS;
+import static featherkraken.flights.entity.SearchRequest.ClassType.ECONOMY;
+import static featherkraken.flights.entity.SearchRequest.ClassType.PREMIUM_ECONOMY;
 import static featherkraken.flights.entity.SearchRequest.TripType.ONE_WAY;
 import static featherkraken.flights.entity.SearchRequest.TripType.ROUND_TRIP;
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -58,13 +62,17 @@ public class KiwiConnector
         }
         foundSources = new ArrayList<>();
         String source = sourceAirports.stream().map(Airport::getName).collect(joining(","));
+        ClassType classType = request.getClassType();
         WebTarget webTarget = ClientBuilder.newClient().target(ENDPOINT)
             .queryParam("curr", "EUR")
             .queryParam("limit", request.getLimit())
             .queryParam("fly_from", source)
             .queryParam("fly_to", request.getTarget().getName())
-            .queryParam("selected_cabins", parseClass(request.getClassType()))
+            .queryParam("selected_cabins", parseClass(classType))
             .queryParam("flight_type", request.getTripType() == ONE_WAY ? "oneway" : "round");
+        if (!ClassType.ECONOMY.equals(classType)) {
+            webTarget = webTarget.queryParam("mix_with_cabins", classesBelow(classType));
+        }
         if (request.getStops() != null) {
             webTarget = webTarget.queryParam("max_stopovers", request.getStops());
         }
@@ -95,6 +103,27 @@ public class KiwiConnector
         JsonArray jsonFlights = (JsonArray)data;
         jsonFlights.forEach(flight -> trips.add(parseTrip((JsonObject)flight, request.getTripType())));
         return new SearchResult().setSourceAirports(foundSources).setTrips(trips);
+    }
+
+    /**
+     * Get all classes below given class and parse to comma separated string of kiwi classes.
+     */
+    private String classesBelow(ClassType classType)
+    {
+        List<ClassType> mixClasses;
+        switch (classType) {
+        case FIRST_CLASS:
+            mixClasses = asList(BUSINESS, PREMIUM_ECONOMY, ECONOMY);
+            break;
+        case BUSINESS:
+            mixClasses = asList(PREMIUM_ECONOMY, ECONOMY);
+            break;
+        case PREMIUM_ECONOMY:
+            return parseClass(ECONOMY);
+        default:
+            return null;
+        }
+        return mixClasses.stream().map(this::parseClass).collect(joining(","));
     }
 
     /**
