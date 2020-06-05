@@ -153,6 +153,21 @@ class FlightResourceIT
         checkResult(response);
     }
 
+    @Test
+    void should_not_find_flights_for_first_class_without_mixing_classes()
+    {
+        SearchRequest request = fullSearchRequest()
+            .setClassType(ClassType.FIRST_CLASS)
+            .setMixClasses(false);
+
+        Response response = featherkraken.doPost(PATH, request);
+
+        assertThat(response.getStatus(), equalTo(OK.getStatusCode()));
+        SearchResult result = response.readEntity(SearchResult.class);
+        List<Trip> trips = result.getTrips();
+        assertThat(trips, hasSize(0));
+    }
+
     /**
      * Checks that response has status 200 OK and result has at least 1 trip.
      */
