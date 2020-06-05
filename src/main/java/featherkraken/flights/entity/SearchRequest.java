@@ -20,6 +20,8 @@ public class SearchRequest
 
     private ClassType classType;
 
+    private Boolean   mixClasses = true;
+
     private Integer   passengers;
 
     private Airport   source;

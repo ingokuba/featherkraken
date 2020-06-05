@@ -6,6 +6,7 @@ import static featherkraken.flights.entity.SearchRequest.ClassType.ECONOMY;
 import static featherkraken.flights.entity.SearchRequest.ClassType.PREMIUM_ECONOMY;
 import static featherkraken.flights.entity.SearchRequest.TripType.ONE_WAY;
 import static featherkraken.flights.entity.SearchRequest.TripType.ROUND_TRIP;
+import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
@@ -70,7 +71,7 @@ public class KiwiConnector
             .queryParam("fly_to", request.getTarget().getName())
             .queryParam("selected_cabins", parseClass(classType))
             .queryParam("flight_type", request.getTripType() == ONE_WAY ? "oneway" : "round");
-        if (!ClassType.ECONOMY.equals(classType)) {
+        if (TRUE.equals(request.getMixClasses()) && !ECONOMY.equals(classType)) {
             webTarget = webTarget.queryParam("mix_with_cabins", classesBelow(classType));
         }
         if (request.getStops() != null) {
