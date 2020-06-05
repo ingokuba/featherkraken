@@ -3,6 +3,7 @@ package featherkraken.flights.kiwi.control;
 import static featherkraken.flights.control.JsonUtil.toStringList;
 import static featherkraken.flights.entity.SearchRequest.ClassType.BUSINESS;
 import static featherkraken.flights.entity.SearchRequest.ClassType.ECONOMY;
+import static featherkraken.flights.entity.SearchRequest.ClassType.FIRST_CLASS;
 import static featherkraken.flights.entity.SearchRequest.ClassType.PREMIUM_ECONOMY;
 import static featherkraken.flights.entity.SearchRequest.TripType.ONE_WAY;
 import static featherkraken.flights.entity.SearchRequest.TripType.ROUND_TRIP;
@@ -166,6 +167,7 @@ public class KiwiConnector
                 .setSource(source)
                 .setTarget(target)
                 .setAirline(kiwiRoute.getString("airline"))
+                .setClassType(parseKiwiClass(kiwiRoute.getString("fare_category")))
                 .setDeparture(getDate(kiwiRoute.getString("local_departure")))
                 .setArrival(getDate(kiwiRoute.getString("local_arrival")));
             if (kiwiRoute.getInt("return") == 0) {
@@ -232,6 +234,28 @@ public class KiwiConnector
             log.severe("Couldn't parse date: " + date);
             return null;
         }
+    }
+
+    /**
+     * Parse Kiwi class to own format.
+     */
+    private ClassType parseKiwiClass(String kiwiClass)
+    {
+        if (kiwiClass != null) {
+            switch (kiwiClass) {
+            case "M":
+                return ECONOMY;
+            case "W":
+                return PREMIUM_ECONOMY;
+            case "C":
+                return BUSINESS;
+            case "F":
+                return FIRST_CLASS;
+            default:
+                return null;
+            }
+        }
+        return null;
     }
 
     /**
