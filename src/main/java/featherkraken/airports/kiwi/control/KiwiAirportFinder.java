@@ -1,4 +1,4 @@
-package featherkraken.airports.control;
+package featherkraken.airports.kiwi.control;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -12,21 +12,24 @@ import java.util.logging.Level;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonValue;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 
 import featherkraken.flights.entity.Airport;
+import featherkraken.kiwi.control.KiwiUtil;
 import lombok.NoArgsConstructor;
 import lombok.extern.java.Log;
 
+/**
+ * Find airport in a given radius.
+ */
 @Log
 @NoArgsConstructor(access = PRIVATE)
-public class AirportFinder
+public class KiwiAirportFinder
 {
 
-    public static final String  RAPIDAPI_KEY  = "rapidapiKey";
-
-    private static final String ENDPOINT = "https://cometari-airportsfinder-v1.p.rapidapi.com/api/airports/by-radius";
+    private static final String ENDPOINT = "https://tequila-api.kiwi.com/locations/radius";
 
     /**
      * Find airports in a specific radius.
@@ -37,27 +40,32 @@ public class AirportFinder
         if (radius == null || radius <= 0) {
             return Arrays.asList(source);
         }
-        String apiKey = System.getProperty(RAPIDAPI_KEY);
+        String apiKey = KiwiUtil.getApiKey();
         if (apiKey == null) {
-            log.severe("Property '" + RAPIDAPI_KEY + "' has to be set for the AirportFinder.");
             return Arrays.asList(source);
         }
         try {
             Response response = ClientBuilder.newClient().target(ENDPOINT)
                 .queryParam("radius", radius)
                 .queryParam("lat", source.getLatitude())
-                .queryParam("lng", source.getLongitude())
+                .queryParam("lon", source.getLongitude())
+                .queryParam("location_types", "airport")
+                .queryParam("limit", 1337)
                 .request(APPLICATION_JSON_TYPE)
-                .header("x-rapidapi-host", "cometari-airportsfinder-v1.p.rapidapi.com")
-                .header("x-rapidapi-key", apiKey)
+                .header("apikey", apiKey)
                 .get();
-            JsonArray jsonAirports = response.readEntity(JsonArray.class);
+            JsonObject json = response.readEntity(JsonObject.class);
+            JsonValue data = json.get("locations");
+            if (data == null) {
+                return Arrays.asList(source);
+            }
+            JsonArray jsonAirports = (JsonArray)data;
             jsonAirports.forEach(jsonAirport -> airports.add(parseAirport((JsonObject)jsonAirport)));
             String concatAirports = airports.stream().map(Airport::getName).collect(joining(", "));
             log.info(format("Found %1$d possible airports: %2$s", airports.size(), concatAirports));
             return airports;
         } catch (Exception e) {
-            log.log(Level.WARNING, "AirportFinder responded with error.", e);
+            log.log(Level.WARNING, KiwiAirportFinder.class.getSimpleName() + " responded with error.", e);
             return Arrays.asList(source);
         }
     }
@@ -71,7 +79,7 @@ public class AirportFinder
         return new Airport()
             .setName(jsonAirport.getString("code"))
             .setDisplayName(jsonAirport.getString("name"))
-            .setLatitude(location.getJsonNumber("latitude").doubleValue())
-            .setLongitude(location.getJsonNumber("longitude").doubleValue());
+            .setLatitude(location.getJsonNumber("lat").doubleValue())
+            .setLongitude(location.getJsonNumber("lon").doubleValue());
     }
 }
