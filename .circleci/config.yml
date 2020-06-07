@@ -40,12 +40,11 @@ jobs:
       -  run: mkdir heroku
       -  run: cp heroku.yml Dockerfile_heroku heroku
       -  run: cp target/featherkraken.war heroku
-      -  run: cd heroku
       -  run: git init
       -  run: git config --global user.email "$GH_EMAIL" > /dev/null 2>&1
       -  run: git config --global user.name "$GH_NAME" > /dev/null 2>&1
-      -  run: git add --all
-      -  run: git commit --all -m "Heroku deployment"
+      -  run: git add heroku
+      -  run: git commit -m "Heroku deployment"
       -  run: git push --force origin master:heroku-deploy
 workflows:
    version: 2
