@@ -3,6 +3,7 @@ package featherkraken.airports.kiwi.control;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.Response.Status.OK;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.StatusType;
 
 import featherkraken.flights.entity.Airport;
 import featherkraken.kiwi.control.KiwiUtil;
@@ -55,6 +57,11 @@ public class KiwiAirportFinder
                 .header("apikey", apiKey)
                 .get();
             JsonObject json = response.readEntity(JsonObject.class);
+            StatusType status = response.getStatusInfo();
+            if (OK.getStatusCode() != status.getStatusCode()) {
+                log.severe(format("Response code was: %1$d %2$s", status.getStatusCode(), status.getReasonPhrase()));
+                return Arrays.asList(source);
+            }
             JsonValue data = json.get("locations");
             if (data == null) {
                 return Arrays.asList(source);

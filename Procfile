@@ -1,0 +1,1 @@
+web: java -DtequilaApiKey=$TEQUILA_API_KEY -jar payara-micro.jar --deploy target/featherkraken.war --port $PORT
