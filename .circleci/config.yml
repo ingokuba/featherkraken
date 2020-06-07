@@ -51,15 +51,12 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      -  run: mkdir heroku
-      -  run: cp heroku.yml Dockerfile_heroku heroku
-      -  run: cp target/featherkraken.war heroku/backend.war
-      -  run: git init
+      -  run: cp target/featherkraken.war backend.war
       -  run: git config --global user.email "$GH_EMAIL" > /dev/null 2>&1
       -  run: git config --global user.name "$GH_NAME" > /dev/null 2>&1
-      -  run: git add heroku
+      -  run: git add backend.war
       -  run: git commit -m "Heroku deployment"
-      -  run: git push --force origin master:heroku-deploy
+      -  run: git push --force origin HEAD:heroku-deploy
 workflows:
    version: 2
    maven_build:
