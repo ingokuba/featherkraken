@@ -1,5 +1,5 @@
 build:
    docker:
       web: Dockerfile_heroku
-   config:
-      PORT: 8080
+run:
+   web: docker build -f Dockerfile_heroku -t fk-payara . && docker run -p 0.0.0.0:$PORT:8080/tcp fk-payara
