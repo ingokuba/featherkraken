@@ -8,13 +8,26 @@ jobs:
       executor: java-executor
       steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
       -  run: mvn --batch-mode --update-snapshots clean package -DskipTests
+      - save_cache:
+          paths:
+            - target
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - target
    java-tests:
       executor: java-executor
       steps:
       - setup_remote_docker
       - checkout
-      -  run: mvn --batch-mode --update-snapshots clean package -DskipTests
+      - attach_workspace:
+          at: .
       -  run: docker-compose up --build -d
       #-  run: sleep 30
       -  run: mvn --batch-mode --update-snapshots verify -DtequilaApiKey=$TEQUILA_API_KEY
@@ -31,7 +44,19 @@ jobs:
       -  image: circleci/openjdk:11-jdk
       steps:
       - checkout
-      -  run: mvn org.owasp:dependency-check-maven:5.2.4:check -DfailBuildOnAnyVulnerability=true -DsuppressionFiles=suppression.xml
+      -  run: mvn org.owasp:dependency-check-maven:5.2.4:check -DfailBuildOnAnyVulnerability=true
+   heroku:
+      executor: java-executor
+      steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      -  run: wget http://bit.ly/2x14U4F -O payara-micro.jar
+      -  run: git config --global user.email "$GH_EMAIL" > /dev/null 2>&1
+      -  run: git config --global user.name "$GH_NAME" > /dev/null 2>&1
+      -  run: git add payara-micro.jar
+      -  run: git commit -m "Heroku deployment"
+      -  run: git push --force origin HEAD:heroku-deploy
 workflows:
    version: 2
    maven_build:
@@ -43,6 +68,12 @@ workflows:
       -  sonar:
             requires:
             - java-build
+      -  heroku:
+            requires:
+            - java-build
+            filters:
+               branches:
+                  only: master
    nightly:
       triggers:
       -  schedule:

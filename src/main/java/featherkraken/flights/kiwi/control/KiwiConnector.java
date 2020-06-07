@@ -92,7 +92,7 @@ public class KiwiConnector
         }
         Response response = webTarget.request(APPLICATION_JSON_TYPE).header("apikey", apiKey).get();
         StatusType status = response.getStatusInfo();
-        if (!OK.equals(status.toEnum())) {
+        if (OK.getStatusCode() != status.getStatusCode()) {
             log.severe(format("Response code was: %1$d %2$s", status.getStatusCode(), status.getReasonPhrase()));
             return null;
         }

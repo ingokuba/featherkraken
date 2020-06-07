@@ -2,6 +2,7 @@ package featherkraken.flights.error;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -9,6 +10,9 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.Providers;
 
+import lombok.extern.java.Log;
+
+@Log
 @Provider
 public class DefaultExceptionMapper
     implements ExceptionMapper<Throwable>
@@ -20,6 +24,7 @@ public class DefaultExceptionMapper
     @Override
     public Response toResponse(Throwable throwable)
     {
+        log.log(Level.SEVERE, "Error caught.", throwable);
         Response response = getMappedResponse(throwable);
         if (response == null) {
             ErrorResponse error = ErrorResponse.builder().errors(fromStackTrace(throwable, new ArrayList<>())).build();
