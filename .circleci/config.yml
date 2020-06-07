@@ -8,13 +8,26 @@ jobs:
       executor: java-executor
       steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
       -  run: mvn --batch-mode --update-snapshots clean package -DskipTests
+      - save_cache:
+          paths:
+            - target
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - target
    java-tests:
       executor: java-executor
       steps:
       - setup_remote_docker
       - checkout
-      -  run: mvn --batch-mode --update-snapshots clean package -DskipTests
+      - attach_workspace:
+          at: .
       -  run: docker-compose up --build -d
       #-  run: sleep 30
       -  run: mvn --batch-mode --update-snapshots verify -DtequilaApiKey=$TEQUILA_API_KEY
@@ -36,10 +49,11 @@ jobs:
       executor: java-executor
       steps:
       - checkout
-      -  run: mvn -U clean package -DskipTests
+      - attach_workspace:
+          at: .
       -  run: mkdir heroku
       -  run: cp heroku.yml Dockerfile_heroku heroku
-      -  run: cp target/featherkraken.war heroku
+      -  run: cp target/featherkraken.war heroku/backend.war
       -  run: git init
       -  run: git config --global user.email "$GH_EMAIL" > /dev/null 2>&1
       -  run: git config --global user.name "$GH_NAME" > /dev/null 2>&1
