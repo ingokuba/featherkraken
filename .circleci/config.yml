@@ -56,6 +56,13 @@ workflows:
       -  sonar:
             requires:
             - java-build
+      -  vuln-trigger:
+            type: approval
+            requires:
+            - java-build
+      -  vulnerability:
+            requires:
+            - vuln-trigger
    nightly:
       triggers:
       -  schedule:
