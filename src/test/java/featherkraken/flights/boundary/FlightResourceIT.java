@@ -9,6 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Calendar;
@@ -105,7 +106,7 @@ class FlightResourceIT
         assertThat(trips, hasSize(1));
         Flight outwardFlight = trips.get(0).getOutwardFlight();
         FlightChecker.check(outwardFlight);
-        assertThat(outwardFlight.getRoute(), hasSize(2));
+        assertThat(outwardFlight.getRoute(), hasSize(lessThanOrEqualTo(2)));
     }
 
     @Test
