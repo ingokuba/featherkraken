@@ -60,6 +60,9 @@ workflows:
             type: approval
             requires:
             - java-build
+            branches:
+               ignore:
+               - master
       -  vulnerability:
             requires:
             - vuln-trigger
